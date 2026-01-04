@@ -3,16 +3,25 @@ interface Project {
   description: string
   href?: string
   imgSrc?: string
+  type?: '팀' | '개인'
 }
 
 const projectsData: Project[] = [
   {
-    title: 'A Search Engine',
-    description: `What if you could look up any information in the world? Webpages, images, videos
-    and more. Google has many features to help you find exactly what you're looking
-    for.`,
-    imgSrc: '/static/images/google.png',
-    href: 'https://www.google.com',
+    title: 'WHYNE',
+    description:
+      '사용자가 다양한 와인 리뷰를 확인하고, 구매 여부를 쉽게 판단할 수 있는 와인 리뷰 플랫폼',
+    imgSrc: '/static/images/whyne-banner.png',
+    href: 'https://github.com/junye0l/WHYNE',
+    type: '팀',
+  },
+  {
+    title: 'Coworkers',
+    description:
+      '여러 명이 하나의 그룹을 만들어 할 일을 함께 공유하고 관리할 수 있는 협업용 To-do 플랫폼',
+    imgSrc: '/static/images/coworkers-banner.png',
+    href: 'https://github.com/junye0l/coworkers',
+    type: '팀',
   },
 ]
 
