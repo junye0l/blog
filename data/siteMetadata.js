@@ -1,19 +1,19 @@
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: 'Next.js Starter Blog',
-  author: 'Tails Azimuth',
+  title: 'Junyeol Blog',
+  author: 'junyeol kim',
   headerTitle: 'Junyeol Blog',
-  description: 'A blog created with Next.js and Tailwind.css',
+  description: 'Read, build, leave a trail.',
   language: 'en-us',
-  theme: 'system', // system, dark or light
-  siteUrl: 'https://tailwind-nextjs-starter-blog.vercel.app',
-  siteRepo: 'https://github.com/timlrx/tailwind-nextjs-starter-blog',
+  theme: 'system',
+  siteUrl: 'https://junyeol.blog/',
+  siteRepo: 'https://github.com/junye0l/blog',
   siteLogo: `${process.env.BASE_PATH || ''}/static/images/logo.png`,
   socialBanner: `${process.env.BASE_PATH || ''}/static/images/twitter-card.png`,
   mastodon: 'https://mastodon.social/@mastodonuser',
-  email: 'address@yoursite.com',
-  github: 'https://github.com',
-  linkedin: 'https://www.linkedin.com',
+  email: 'junyeolkim00@gmail.com',
+  github: 'https://github.com/junye0l',
+  linkedin: 'https://www.linkedin.com/in/%EC%A4%80%EC%97%B4-%EA%B9%80-173512366/',
   instagram: 'https://www.instagram.com',
   locale: 'en-US',
   // set to true if you want a navbar fixed to the top
