@@ -23,6 +23,13 @@ const projectsData: Project[] = [
     href: 'https://github.com/junye0l/coworkers',
     type: '팀',
   },
+  {
+    title: 'yamoyo',
+    description: '팀 프로젝트 시작에 필요한 모든 결정을 재밌고 빠르게 끝내는 팀 초기 세팅 서비스',
+    imgSrc: '/static/images/coming-soon.png',
+    href: 'https://github.com/junye0l',
+    type: '개인',
+  },
 ]
 
 export default projectsData
