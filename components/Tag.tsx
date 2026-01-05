@@ -5,6 +5,8 @@ interface Props {
 }
 
 const Tag = ({ text }: Props) => {
+  if (!text) return null
+
   return (
     <Link
       href={`/tags/${slug(text)}`}
