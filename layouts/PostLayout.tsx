@@ -79,8 +79,34 @@ export default function PostLayout({ content, authorDetails, next, prev, childre
                 </ul>
               </dd>
             </dl>
-            <div className="divide-y divide-gray-200 xl:col-span-3 xl:row-span-2 xl:pb-0 dark:divide-gray-700">
-              <div className="prose dark:prose-invert max-w-none pt-10 pb-8">{children}</div>
+            <div className="min-w-0 divide-y divide-gray-200 xl:col-span-3 xl:row-span-2 xl:pb-0 dark:divide-gray-700">
+              <div className="prose dark:prose-invert max-w-none min-w-0 pt-10 pb-8">
+                {children}
+              </div>
+              {(next || prev) && (
+                <div className="mx-auto grid w-[640px] max-w-full gap-6 p-8 text-sm font-medium sm:grid-cols-2 sm:text-base">
+                  {prev && prev.path && (
+                    <div className="min-w-0">
+                      <h2 className="text-xs tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                        Previous
+                      </h2>
+                      <div className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                        <Link href={`/${prev.path}`}>{prev.title}</Link>
+                      </div>
+                    </div>
+                  )}
+                  {next && next.path && (
+                    <div className="min-w-0 sm:text-right">
+                      <h2 className="text-xs tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                        Next
+                      </h2>
+                      <div className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                        <Link href={`/${next.path}`}>{next.title}</Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <footer>
               <div className="divide-gray-200 text-sm leading-5 font-medium xl:col-start-1 xl:row-start-2 xl:divide-y dark:divide-gray-700">
@@ -94,30 +120,6 @@ export default function PostLayout({ content, authorDetails, next, prev, childre
                         <Tag key={tag} text={tag} />
                       ))}
                     </div>
-                  </div>
-                )}
-                {(next || prev) && (
-                  <div className="flex justify-between py-4 xl:block xl:space-y-8 xl:py-8">
-                    {prev && prev.path && (
-                      <div>
-                        <h2 className="text-xs tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                          Previous Article
-                        </h2>
-                        <div className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400">
-                          <Link href={`/${prev.path}`}>{prev.title}</Link>
-                        </div>
-                      </div>
-                    )}
-                    {next && next.path && (
-                      <div>
-                        <h2 className="text-xs tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                          Next Article
-                        </h2>
-                        <div className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400">
-                          <Link href={`/${next.path}`}>{next.title}</Link>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
