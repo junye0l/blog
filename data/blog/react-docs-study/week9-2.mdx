@@ -1,0 +1,283 @@
+---
+title: '리액트 공식문서 스터디 9-2 주차'
+date: '2026-01-02T09:00:00+09:00'
+tags:
+  - React
+  - dependencies
+  - Hook
+  - 스터디
+summary: '의존성 배열과 Custom Hook'
+draft: false
+---
+
+# <a href="https://ko.react.dev/learn/removing-effect-dependencies">Removing Effect Dependencies</a>
+
+## Dependencies should match the code
+
+Effect 코드 내부에서 읽는 모든 반응형 값은 반드시 의존성 목록에 포함되어야 한다.
+
+linter는 코드에서 사용하는 반응형 값이 의존성에 누락되었는지 확인하여 동기화 버그를 방지한다.
+
+의존성이 코드와 일치하지 않으면 버그가 발생할 위험이 높으므로 linter를 억제하지 말아야 한다.
+
+## To remove a dependency, prove that it’s not a dependency
+
+의존성을 제거하려면 해당 값이 반응형 값이 아니라는 것을 linter에 증명해야 한다.
+
+값을 컴포넌트 외부로 이동시키면 재렌더링 시에도 값이 변하지 않으므로 의존성에서 제거할 수 있다.
+
+반응형 값에는 props와 컴포넌트 내부에서 직접 선언된 변수 및 함수가 포함된다.
+
+## To change the dependencies, change the code
+
+의존성 목록은 사용자가 선택하는 것이 아니라 Effect의 코드에 의해 결정된다.
+
+의존성을 변경하고 싶다면 먼저 Effect의 코드나 반응형 값의 선언 방식을 변경해야 한다.
+
+코드를 수정한 후 그 결과에 맞춰 의존성 목록을 조정하는 과정이 필요하다.
+
+## Removing unnecessary dependencies
+
+> 의존성 중 하나가 변경될 때마다 Effect가 다시 실행되는 것이 합리적인지 검토해야 한다.
+
+### Should this code move to an event handler?
+
+문제: 알림 스타일을 위한 theme이 의존성에 포함되면, 테마만 바꿔도 다시 알림이 전송되는 버그가 발생한다.
+
+해결: 상호작용(제출)에만 반응하도록 로직을 이벤트 핸들러로 옮긴다.
+
+```JavaScript
+function Form() {
+  const theme = useContext(ThemeContext);
+
+  function handleSubmit() {
+    // 이벤트 핸들러에서 직접 실행하여 theme 변경에 반응하지 않게 함
+    post('/api/register');
+    showNotification('Successfully registered!', theme);
+  }
+  // ...
+}
+```
+
+### Is your Effect doing several unrelated things?
+
+문제: 한 Effect에서 country와 city를 모두 관리하면 도시만 바꿔도 도시 목록까지 다시 불러온다.
+
+해결: 각각의 동기화 프로세스를 별도의 Effect로 분리한다.
+
+```JavaScript
+function ShippingForm({ country }) {
+  const [cities, setCities] = useState(null);
+  useEffect(() => {
+    // country 변경 시 도시 목록 가져오기
+    fetch(`/api/cities?country=${country}`).then(/* ... */);
+  }, [country]);
+
+  const [city, setCity] = useState(null);
+  const [areas, setAreas] = useState(null);
+  useEffect(() => {
+    // city 변경 시 지역 목록 가져오기
+    if (city) fetch(`/api/areas?city=${city}`).then(/* ... */);
+  }, [city]);
+  // ...
+}
+```
+
+### Are you reading some state to calculate the next state?
+
+문제: messages를 직접 참조하면 새 메시지가 올 때마다 Effect가 재실행되어 연결이 계속 끊긴다.
+
+해결: 업데이터 함수를 사용하여 messages를 의존성에서 제거한다.
+
+```JavaScript
+function ChatRoom({ roomId }) {
+  const [messages, setMessages] = useState([]);
+  useEffect(() => {
+    const connection = createConnection();
+    connection.connect();
+    connection.on('message', (receivedMessage) => {
+      // 이전 상태를 인자로 받아 업데이트
+      setMessages(msgs => [...msgs, receivedMessage]);
+    });
+    return () => connection.disconnect();
+  }, [roomId]); // messages 의존성 제거
+  // ...
+}
+```
+
+### Do you want to read a value without "reacting" to its changes?
+
+문제: isMuted가 바뀔 때마다 채팅방에 다시 연결되는 비합리적인 동작이 발생한다.
+
+해결: useEffectEvent로 비반응형 로직을 분리한다.
+
+```JavaScript
+function ChatRoom({ roomId }) {
+  const [isMuted, setIsMuted] = useState(false);
+
+  // 최신 값은 읽되 변경에 반응은 하지 않는 로직 추출
+  const onMessage = useEffectEvent(receivedMessage => {
+    if (!isMuted) playSound();
+  });
+
+  useEffect(() => {
+    const connection = createConnection();
+    connection.on('message', (msg) => onMessage(msg));
+    connection.connect();
+    return () => connection.disconnect();
+  }, [roomId]); // isMuted에 반응하지 않음
+  // ...
+}
+```
+
+### Does some reactive value change unintentionally?
+
+문제: 렌더링 때마다 생성되는 객체나 함수를 의존성에 넣으면 매번 Effect가 재실행된다.
+
+해결: 객체를 Effect 내부로 옮기거나 원시 값을 의존성으로 사용한다.
+
+```JavaScript
+function ChatRoom({ roomId }) {
+  useEffect(() => {
+    // 객체를 Effect 내부에서 선언하여 의존성에서 제외
+    const options = {
+      serverUrl: 'https://localhost:1234',
+      roomId: roomId
+    };
+    const connection = createConnection(options);
+    connection.connect();
+    return () => connection.disconnect();
+  }, [roomId]); // 객체 대신 원시값인 roomId에만 반응
+  // ...
+}
+```
+
+<br />
+
+# <a href="https://react.dev/learn/reusing-logic-with-custom-hooks">Reusing Logic with Custom Hooks</a>
+
+## Overview
+
+- React에는 `useState`, `useEffect` 같은 built-in Hook이 있지만, 앱에서 필요한 더 구체적인 로직은 Custom Hook으로 직접 만들 수 있다.
+- 목표는 여러 컴포넌트에서 반복되는 **state + Effect 패턴을 하나의 재사용 가능한 unit**으로 묶는 것이다.
+- 컴포넌트는 _무엇을 하고 싶은지(intent)_ 에 집중하고, 구현 디테일은 Hook 내부로 숨긴다.
+
+## Custom Hooks: Sharing logic between components
+
+- `StatusBar`, `SaveButton`은 모두
+  - 네트워크 온라인 여부를 나타내는 `isOnline` state를 가지고
+  - `online / offline` 이벤트를 subscribe / unsubscribe 한다.
+
+- UI는 다르지만 **로직은 완전히 동일**하다.
+- 이 로직을 Custom Hook으로 추출하면:
+  - 컴포넌트는 “온라인 상태를 쓰고 싶다”는 의도만 표현하고
+  - 이벤트 관리 같은 구현은 Hook 안으로 캡슐화된다.
+
+## Extracting your own custom Hook from a component
+
+- `useOnlineStatus` 함수를 만들고 기존 컴포넌트 안에 있던 `useState`, `useEffect` 코드를 이 함수 안으로 옮긴다.
+- Custom Hook은 `isOnline` 값만 return 한다.
+- 사용하는 쪽 컴포넌트에서는 아래처럼 호출만 한다.
+
+```js
+const isOnline = useOnlineStatus()
+```
+
+- 결과적으로 컴포넌트 코드에서 중복 로직이 사라지고, 읽기 쉬운 구조가 된다.
+
+## Hook names always start with use
+
+- **React 컴포넌트**
+  - 대문자로 시작 (`StatusBar`, `SaveButton`)
+  - JSX를 반환해야 함
+
+- **React Hook**
+  - 반드시 `use`로 시작 (`useState`, `useOnlineStatus`)
+  - 어떤 값이든 반환 가능
+
+이 네이밍 규칙 덕분에:
+
+- lint가 “Hook 또는 Component에서만 다른 Hook을 호출한다”는 규칙을 강제할 수 있고
+- `getColor()` 같은 일반 함수에는 React state가 없다는 걸 코드만 보고도 알 수 있다.
+
+## Custom Hooks let you share stateful logic, not state itself
+
+- `StatusBar`와 `SaveButton`이 각각 `useOnlineStatus()`를 호출해도
+  **state와 Effect 인스턴스는 서로 완전히 독립적**이다.
+
+- 값이 동시에 바뀌는 이유는 같은 외부 시스템(네트워크 상태)에 동기화되기 때문이지,
+  state를 공유해서가 아니다.
+
+- `useFormInput('Mary')`, `useFormInput('Poppins')` 예제에서도
+  - 내부 `value` state는 각각 따로 생성되고
+  - 공유되는 것은 “input을 제어하는 로직”뿐이다.
+
+👉 여러 컴포넌트가 **진짜 같은 state**를 써야 한다면
+Custom Hook이 아니라 **state를 상위로 끌어올리고 props로 내려야 한다.**
+
+## Passing reactive values between Hooks
+
+- Custom Hook의 코드는 컴포넌트가 re-render될 때마다 함께 다시 실행된다.
+
+- 따라서 항상 **최신 props와 state를 입력으로 받는다.**
+
+- chat 예제에서:
+  - `ChatRoom`은 `serverUrl`, `roomId`를 `useChatRoom({ serverUrl, roomId })`로 전달
+  - 이 값들이 바뀌면 Effect가 다시 실행되어 connection이 재동기화된다.
+
+## Passing event handlers to custom Hooks
+
+- 처음에는 `useChatRoom` 안에서 message 수신 시 `showNotification`을 직접 호출한다.
+- 이후 컴포넌트마다 다른 동작을 하게 만들기 위해
+  `onReceiveMessage` 같은 이벤트 핸들러를 options로 받는다.
+
+문제:
+
+- 핸들러를 Effect dependency에 그대로 넣으면
+  - 렌더마다 함수 reference가 바뀔 수 있고
+  - 그때마다 불필요한 reconnect가 발생한다.
+
+해결:
+
+- `useEffectEvent(onReceiveMessage)`로 감싸서
+  - 최신 값은 읽되
+  - 의존성에서는 제외한다.
+
+## When to use custom Hooks
+
+- 단순히 `useState` 한 줄 감싸는 정도의 중복은 굳이 Hook으로 빼지 않아도 된다.
+
+- 하지만 다음 경우에는 Custom Hook을 적극 고려할 만하다.
+  - `fetch`, `WebSocket`, browser API 등
+  - **외부 시스템과 동기화하기 위해 Effect를 사용하는 경우**
+
+- `useData(url)`처럼:
+  - input → output 흐름을 명확히 만들고
+  - 컴포넌트에서는 “무슨 데이터를 쓰는지”만 드러내는 게 좋다.
+
+## Custom Hooks help you migrate to better patterns
+
+- `useOnlineStatus`는 처음엔 `useState + useEffect`로 구현할 수 있다.
+
+- 이후 React에서 `useSyncExternalStore` 같은 더 적합한 API가 나오면
+  Hook 내부 구현만 교체하면 된다.
+
+- 이때 Hook을 사용하는 **컴포넌트 코드는 수정할 필요가 없다.**
+
+→ Effect를 Custom Hook 안에 가두면
+전체 코드베이스를 점진적으로 업그레이드하기 쉬워진다.
+
+## There is more than one way to do it
+
+- `requestAnimationFrame` 기반 fade-in 로직을
+  - `useFadeIn`으로 추출할 수도 있고
+  - animation loop만 `useAnimationLoop`로 더 쪼갤 수도 있다.
+
+- 반대로:
+  - imperative 로직을 JS class 같은 외부 시스템으로 빼거나
+  - CSS animation으로 대체하는 편이 더 나은 경우도 있다.
+
+👉 모든 문제에 Hook이 정답은 아니다.
+상황에 맞는 추상화 수준을 선택하는 것이 핵심이다.
+
+​
