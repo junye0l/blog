@@ -9,17 +9,15 @@ summary: 'React Compiler에 대하여'
 draft: false
 ---
 
-<a href="https://react.dev/learn/react-compiler/introduction">React Compiler</a>
-
-# React Compiler?
+# <a className="transition-colors" href="https://react.dev/learn/react-compiler/introduction">React Compiler?</a>
 
 - React Compiler는 React App을 **자동으로 최적화** 해주는 새로운 **빌드 타임 도구** 이다.
 
 - React는 최적화 없이도 충분히 빠르지만, App을 업데이트하기 위해 컴포넌트의 값들을 **기억해둬야 하는 경우**가 있다.
 
-- 이러한 메모이제이션 과정은 수동으로 코드를 작성해야하기 때문에, 까먹거나 추가적인 코드 작성이 필요해 **번거로움이나 실수를 유발**할 수 있다.
+- 이러한 메모이제이션 과정은 **수동**으로 코드를 작성해야하기 때문에, **누락**하거나 **추가**적인 **코드 작성**이 필요해 <br />**번거로움이나 실수를 유발**할 수 있다.
 
-- 이러한 문제점들을 **React Compiler**이 보완할 수 있는 것이다.
+- 이러한 문제점들을 **React Compiler**이 보완할 수 있다.
 
 ## Before React Compiler
 
@@ -80,7 +78,7 @@ function ExpensiveComponent({ data, onClick }) {
 }
 ```
 
-## the kinds of memoization that React Compiler automatically adds
+## The kinds of memoization that React Compiler automatically adds
 
 - Optimizing Re-renders
   - 부모가 리렌더 되었을 때, 자식 요소까지 리렌더 되는 것을 방지한다.
@@ -88,7 +86,7 @@ function ExpensiveComponent({ data, onClick }) {
 - Expensive calculations also get memoized
   - 컴포넌트, 훅 안에서 계산하는 무거운 로직들을 재사용할 수 있다.
 
-## useMemo, useCallback, React.memo 🤔
+## useMemo, useCallback, memo 🤔
 
 - React Compiler로 인해 위 메서드들은 필요가 없을까?
 
@@ -98,8 +96,8 @@ function ExpensiveComponent({ data, onClick }) {
 
 ## React Compiler approaches to incremental adoption
 
-### <a href="https://react.dev/learn/react-compiler/incremental-adoption#directory-based-adoption">Babel overrides</a>
+### <a className="transition-colors" href="https://react.dev/learn/react-compiler/incremental-adoption#directory-based-adoption">Babel overrides</a>
 
-### <a href="https://react.dev/learn/react-compiler/incremental-adoption#opt-in-mode-with-use-memo">Opt-in with “use memo"</a>
+### <a className="transition-colors" href="https://react.dev/learn/react-compiler/incremental-adoption#opt-in-mode-with-use-memo">Opt-in with “use memo"</a>
 
-### <a href="https://react.dev/learn/react-compiler/incremental-adoption#runtime-feature-flags-with-gating">Runtime gating</a>
+### <a className="transition-colors" href="https://react.dev/learn/react-compiler/incremental-adoption#runtime-feature-flags-with-gating">Runtime gating</a>
