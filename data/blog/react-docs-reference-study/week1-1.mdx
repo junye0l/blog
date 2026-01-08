@@ -1,0 +1,69 @@
+---
+title: 'useActionState'
+date: '2026-01-08T09:00:00+09:00'
+tags:
+  - React
+  - useActionState
+summary: 'useActionState에 대하여'
+draft: false
+---
+
+# <a className="transition-colors" href="https://react.dev/reference/react/useActionState">useActionState</a>
+
+```javascript
+const [state, formAction, isPending] = useActionState(fn, initialState, permalink?);
+```
+
+- `useActionState`는 `formAction 결과`에 따라 `상태를 업데이트`할 수 있게 해주는 `hook`이다.
+
+> [!NOTE]
+> React 초기에는 `useActionState`가 아니라 `useFormState`로 불렸다고 한다..
+
+## Reference
+
+```javascript
+import { useActionState } from 'react'
+
+async function increment(previousState, formData) {
+  return previousState + 1
+}
+
+function StatefulForm({}) {
+  const [state, formAction] = useActionState(increment, 0)
+  return (
+    <form>
+      {state}
+      <button formAction={formAction}>Increment</button>
+    </form>
+  )
+}
+```
+
+### Parameters
+
+- `fn` : event에 따라 호출되는 함수로, 첫 번째 인자로 **이전 상태**를 받고 그 다음 인자로 기존 **formaction**이 받던 값들을 받는다.
+- `initialState` : 초기 상태로 사용할 값으로, 직렬화 가능한 어떤 값이든 될 수 있다. 이 값은 처음 action이 실행될 때만 사용되며, 한 번 실행된 이후에는 이전 action의 반환값이 상태로 사용된다.
+  - **직렬화**란, 데이터를 전송하거나 저장할 수 있도록 문자열 형태로 바꾸는 것이다.
+- `permalink` : 리액트가 아직 실행되지 않은 상태에서 폼이 제출될 경우, 이동할 **대체 페이지 URL**를 지정하는 **Optional** 옵션이다.
+
+### Returns
+
+- `state`
+  - 첫 렌더링 시에는 전달한 initialState 값
+  - 액션이 실행된 이후에는 액션 함수가 반환한 값으로 갱신된다.
+
+- `action`
+  - `<form action={action}>` 형태로 폼의 action prop에 전달할 수 있다.
+  - 또는 폼 내부 버튼의 formAction prop으로도 사용할 수 있다.
+  - 필요하다면 `startTransition` 안에서 직접 호출할 수도 있습니다.
+
+- `isPending`
+  - 현재 액션이 실행 중인지( Transition이 pending 상태인지 ) 를 나타내는 boolean 값
+  - 로딩 상태 처리에 사용한다.
+
+<br />
+
+> [!WARNING]
+>
+> 1. RSC가 있으면 useActionState는 상태 계산을 서버가 하고, RSC가 없으면 브라우저에서 계산하는 클라이언트 상태 훅이다. <br />
+> 2. useActionState의 prevState는 서버에 저장된 값이 아니라, 직전 렌더 결과를 클라이언트가 요청에 다시 실어 보내는 값이다.

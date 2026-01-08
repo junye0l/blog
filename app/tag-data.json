@@ -1,5 +1,6 @@
 {
-  "react": 16,
+  "react": 17,
+  "useactionstate": 1,
   "compiler": 1,
   "스터디": 27,
   "jest": 1,
