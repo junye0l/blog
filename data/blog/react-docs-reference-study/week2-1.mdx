@@ -1,0 +1,82 @@
+---
+title: 'useCallback'
+date: '2026-01-12T09:00:00+09:00'
+tags:
+  - React
+  - useCallback
+summary: 'useCallback에 대하여'
+draft: false
+---
+
+# <a href="https://react.dev/reference/react/useCallback">useCallback</a>
+
+- 재렌더링사이에 함수 정의를 캐싱할 수 있는 React hook이다.
+
+> [!NOTE]
+>
+> <a href="https://react.dev/learn/react-compiler">React Compiler</a>를 통해 `useCallback` 사용을
+> 줄일 수 있다.
+
+## Parameters
+
+> useCallback(fn , dependencies)
+
+- `fn`
+  - 캐싱하려는 함수 값이다.
+  - 어떤 인수도 지정할 수 있고, 반환할 수 있다.
+  - `dependenices`를 이전 렌더링과 비교하여 변화가 없다면 같은 함수 실행값을 제공한다.
+  - `dependenices`가 변화하였다면, 나중에 재사용할 수 있도록 캐싱해둔다.
+- `dependenices`
+  - `props, state, 컴포넌트 내부에 있는 모든 값`들이 포함될 수 있다.
+  - 의존성 목록은 `인라인 형식`으로 작성되어야 한다.
+  - `React`가 `Object.is` 알고리즘을 사용하여 각 의존성을 이전 값과 비교한다.
+
+## Returns
+
+- 초기 렌더링에서 `fn`를 반환한다.
+
+- 이후 렌더링에는 `dependenices`에 따라 기존 `fn`을 반환이 결정된다.
+
+> [!WARNING]
+> `useCallback`는 `hook`이므로 컴포넌트 최상위 레벨이나 훅 내부에서 호출해야한다.
+>
+> <br /> 조건부 혹은 반복문에서는 호출해서는 안된다.
+
+<br />
+
+# Usage
+
+## Skipping re-rendering of components
+
+- useCallback은 재렌더링 사이에서 함수 참조를 유지하기 위한 Hook
+
+- memo로 감싼 자식 컴포넌트의 불필요한 재렌더링 방지
+
+- 의존성이 바뀌지 않으면 같은 함수 참조를 반환
+
+## Updating state from a memoized callback
+
+- 의존성을 최대한 적게하기 위하여, 업데이트 함수를 전달하는 방식을 사용할 수 있다.
+
+```javascript
+setTodos([...todos, newTodo]) // ❌
+setTodos((prev) => [...prev, newTodo]) // ✅
+```
+
+## Preventing an Effect from firing too often
+
+- Effect 내부에서 외부 함수 사용 -> 해당 함수가 렌더마다 새로 생성됨 -> Effect가 매번 재실행됨
+  - useCallback으로 함수 고정
+
+  - 함수 자체를 Effect 내부로 이동
+
+## Optimizing a custom Hook
+
+- 커스텀 훅이 함수를 반환한다면 useCallback으로 감싸는 것을 권장한다.
+
+<br />
+
+> [!NOTE] The difference between useCallback and declaring a function directly
+> `function () {} / () => {}` ➡️ `항상 새로운 함수` <br />
+> `useCallback(fn, deps)` ➡️ `deps가 같으면 같은 함수` <br />
+> 두 개의 차이는 로직이 아니라 참조 동일성에 대한 것 이다.
