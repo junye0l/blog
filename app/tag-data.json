@@ -1,5 +1,7 @@
 {
-  "react": 17,
+  "react": 19,
+  "usecontext": 1,
+  "usecallback": 1,
   "useactionstate": 1,
   "compiler": 1,
   "스터디": 27,

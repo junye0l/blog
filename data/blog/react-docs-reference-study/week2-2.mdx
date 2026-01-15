@@ -1,0 +1,47 @@
+---
+title: 'useContext'
+date: '2026-01-15T09:00:00+09:00'
+tags:
+  - React
+  - useContext
+summary: 'useContext에 대하여'
+draft: false
+---
+
+# <a className="transition-colors" href="https://react.dev/reference/react/useContext">useContext</a>
+
+- `useContext`란 컴포넌트에서 `컨텍스트`를 `Read` 와 `subscribe` 할 수 있게 해주는 `hook`이다.
+
+## Reference
+
+- **Parameters**
+  - **someContext** : 실제 데이터를 담는 저장소가 아니라, 어떤 정보를 주고받을지 결정하는 `데이터의 종류와 통로를 나타내는 식별자`
+- **Returns** : 호출하는 컴포넌트의 컨텍스트 값을 반환한다.
+
+> [!WARNING]
+> `useContext()` 호출은 동일한 컴포넌트 내에 있는 `<Provider>`의 영향을 받지 않는다.<br />
+> `Provider`의 `value`가 변경되면, 해당 컨텍스트를 사용하는 모든 하위 컴포넌트는 자동으로 리렌더링된다.<br />
+> 컨텍스트가 작동하려면 값을 제공하는 SomeContext와 읽으려는 SomeContext가 완전히 동일한 객체여야 합니다. <br />
+
+## Usage
+
+- **Passing data deeply into the tree**
+  - Props Drilling를 해결 할 수 있다.
+  - 방식
+    - 컴포넌트 최상단에서 `const value = useContext(SomeContext);`를 호출한다.
+    - React는 해당 컴포넌트를 기준으로 트리를 따라 위로 올라가며 가장 가까운 곳에 있는 `<SomeContext.Provider>`를 찾는다.
+    - 가장 먼저 만나는 `Provider의 value`를 가져온다.
+
+- **Updating data passed via context**
+  - 컨텍스트를 업데이트 하기 위해서는 상태와 조합하면 된다.
+
+  - 부모 컴포넌트에 state를 선언하고, 현재 state를 컨텍스트 value 값으로 전달하면 된다.
+
+- **Specifying a fallback default value**
+  - React가 부모 트리에서 특정 컨텍스트의 Provider를 찾기 못한다면 해당 컨텍스트를 생성할 때 지정한 기본값을 가지게 된다.
+
+- **Overriding context for a part of the tree**
+  - 특정 부분만을 위한 Provider를 지정하여 컨텍스트를 override 할 수 있다.
+
+- **Optimizing re-renders when passing objects and functions**
+  - 부모 컴포넌트가 리렌더링 될 때, 컨텍스트에 전달하는 객체나 함수가 재정의 되지 않도록 <br /> `useMemo`, `useCallback`를 통해 참조값을 고정하여 성능향상을 할 수 있다.
