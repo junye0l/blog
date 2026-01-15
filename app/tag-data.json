@@ -1,5 +1,6 @@
 {
-  "react": 19,
+  "react": 20,
+  "usestate": 1,
   "usecontext": 1,
   "usecallback": 1,
   "useactionstate": 1,
