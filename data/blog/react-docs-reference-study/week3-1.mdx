@@ -1,0 +1,287 @@
+---
+title: 'useDebugValue, useDeferredValue'
+date: '2026-01-20T09:00:00+09:00'
+tags:
+  - React
+  - useDebugValue
+  - useDeferredValue
+summary: 'useDebugValue와 useDeferredValue에 대하여'
+draft: false
+---
+
+# <a className="transition-colors" href="https://react.dev/reference/react/useDebugValue">useDebugValue</a>
+
+- `useDebugValue`는 React DevTools에서 Custom Hook에 label을 추가할 수 있게해주는 React hook이다.
+
+# Reference
+
+- Parameters
+  - `value` : React DevTools에서 표시하고자 하는 값이다.
+  - `format` : `optional` 값으로 컴포넌트를 검사할 때 value를 인자로 호출하고, 반환된 형식화된 값 즉, format이 존재하면 이 값을 표시하고 아니라면 원본 value 자체를 표시한다.
+
+- Returns
+  - 아무것도 반환하지 않는다.
+
+# Usage
+
+```javascript
+function useOnlineStatus() {
+  const isOnline = useSyncExternalStore(
+    subscribe,
+    () => navigator.onLine,
+    () => true
+  )
+  return isOnline
+}
+
+function MyComponent() {
+  const isOnline = useOnlineStatus()
+  // ...
+} /// useDebugValue 사용 ❌
+
+function useOnlineStatus() {
+  const isOnline = useSyncExternalStore(
+    subscribe,
+    () => navigator.onLine,
+    () => true
+  )
+
+  useDebugValue(isOnline ? 'Online' : 'Offline')
+  return isOnline
+} /// useDebugValue 사용 ✅
+```
+
+- `useDebugValue` 사용 여부에 따른 표시
+  - 사용 X : React DevTools에서 `OnlineStatus: true` 라고 표시
+  - 사용 O : React DevTools에서 `OnlineStatus: "Online"` 라고 표시
+
+- 즉, 해당 훅을 사용하게되면 커스텀 훅의 값을 보기 쉽게 표시한다.
+
+- 그렇다면 format 인자는 무슨 역할을 할까?
+
+```javascript
+function useCurrentDate() {
+  const [date, setDate] = useState(new Date())
+
+  // 매 렌더링마다 toDateString() 실행
+  useDebugValue(date.toDateString())
+
+  return date
+}
+```
+
+- 만약 포맷팅 비용이 큰 값이 있다면 위와 같은 코드를 실행시 컴포넌트 렌더링마다 `toDateString()` 실행하여 성능을 낭비할 수 있다.
+
+- 그렇기에 아래와 같은 코드로 수정하게 된다면
+
+```javascript
+function useCurrentDate() {
+  const [date, setDate] = useState(new Date())
+
+  useDebugValue(date, (date) => date.toDateString())
+
+  return date
+}
+```
+
+- 평소에는 date 객체만 저장하고 포맷팅을 안한다. 또한 React DevTools를 열었을 때 만 `date.toDateString()`를 실행함으로서 성능이 향상된다.
+
+---
+
+# <a className="transition-colors" href="https://react.dev/reference/react/useDeferredValue">useDeferredValue</a>
+
+- `useDeferredValue`는 UI 일부 업데이트를 미룰 수 있게 해주는 React hook이다.
+
+# Reference
+
+## Parameters
+
+- **`value`**: deferred하고 싶은 값
+
+- **`initialValue`** (optional):
+  - 첫 렌더링에서 사용할 임시 값
+  - 생략하면 첫 렌더링에서는 `value`를 그대로 사용 (defer 안 함)
+  - 제공하면 `initialValue` → `value`로 defer하며 전환
+
+## Returns
+
+### `currentValue` (deferred된 값)
+
+**초기 렌더링:**
+
+- `initialValue`가 있으면 그 값 반환
+- 없으면 전달한 `value` 그대로 반환
+
+**업데이트 시:**
+
+1. 먼저 이전 값으로 렌더링 (즉시)
+2. 백그라운드에서 새 값으로 다시 렌더링 (defer)
+
+## Caveats (주의사항)
+
+### 1. Transition과 함께 사용할 때
+
+- `startTransition` 내부에서 업데이트가 일어나면 `useDeferredValue`는 defer 없이 새 값을 바로 반환
+- 이미 Transition으로 defer되고 있기 때문
+
+### 2. 전달하는 값의 타입
+
+**권장:**
+
+- 원시 타입 (string, number, boolean)
+- 컴포넌트 외부에서 생성된 객체
+
+**피해야 할 패턴:**
+
+```typescript
+function Component() {
+  // ❌ 매 렌더링마다 새 객체 생성
+  const deferred = useDeferredValue({ name: 'test' })
+
+  // ✅ 컴포넌트 외부나 useMemo 사용
+  const config = useMemo(() => ({ name: 'test' }), [])
+  const deferred = useDeferredValue(config)
+}
+```
+
+### 3. 백그라운드 렌더링의 동작
+
+- 값이 변경되면 (`Object.is`로 비교) 백그라운드 렌더링 예약
+- **중단 가능**: 새로운 업데이트가 오면 백그라운드 렌더링을 버리고 새로 시작
+- 예: 빠르게 타이핑하면 입력이 멈춘 후에만 무거운 차트가 렌더링됨
+
+### 4. Suspense 통합
+
+- 백그라운드 업데이트가 데이터를 로딩 중이면
+- Suspense fallback을 보여주지 **않고**
+- 이전 deferred 값을 계속 표시 (데이터 로딩 완료까지)
+
+### 5. 네트워크 요청
+
+- `useDeferredValue`는 렌더링만 지연시킴
+- 네트워크 요청 자체는 막지 않음
+- API 호출 최적화가 필요하면 debounce 등을 별도로 사용해야 함
+
+### 6. 지연 시간
+
+- **고정된 delay 없음**
+- React가 원래 렌더링을 마치면 즉시 백그라운드 렌더링 시작
+- 사용자 이벤트(타이핑, 클릭 등)가 백그라운드 렌더링보다 우선순위 높음
+
+### 7. Effect 실행 시점
+
+- 백그라운드 렌더링의 Effect는 **화면에 커밋된 후**에 실행
+- Suspense로 인해 렌더링이 중단되면, 데이터 로딩 + UI 업데이트 완료 후 Effect 실행
+
+## Usage
+
+### 1. Showing stale content while fresh content is loading
+
+**기본 동작:**
+
+```typescript
+function SearchPage() {
+  const [query, setQuery] = useState('');
+  const deferredQuery = useDeferredValue(query);
+
+  return (
+    <>
+      <input value={query} onChange={e => setQuery(e.target.value)} />
+      <Suspense fallback={<h2>Loading...</h2>}>
+        <SearchResults query={deferredQuery} />
+      </Suspense>
+    </>
+  );
+}
+```
+
+**동작 순서:**
+
+1. 사용자가 "a" 입력
+2. `query`는 즉시 "a"로 업데이트 (input 반영)
+3. `deferredQuery`는 이전 값 유지 (이전 검색 결과 표시)
+4. 백그라운드에서 "a" 결과 로딩 완료
+5. `deferredQuery`가 "a"로 업데이트 (새 결과 표시)
+
+**장점:**
+
+- Suspense fallback(Loading...) 대신 이전 결과를 계속 보여줌
+- 깜빡임 없는 부드러운 UX
+
+---
+
+### 2. Indicating that the content is stale
+
+```typescript
+function App() {
+  const [query, setQuery] = useState('');
+  const deferredQuery = useDeferredValue(query);
+  const isStale = query !== deferredQuery;
+
+  return (
+    <div style={{
+      opacity: isStale ? 0.5 : 1,
+      transition: 'opacity 0.2s'
+    }}>
+      <SearchResults query={deferredQuery} />
+    </div>
+  );
+}
+```
+
+**효과:**
+
+- 새 결과 로딩 중에는 이전 결과를 반투명하게 표시
+- 사용자에게 로딩 중임을 시각적으로 알림
+
+---
+
+### 3. Deferring re-rendering for a part of the UI
+
+**문제 상황:**
+
+```typescript
+function App() {
+  const [text, setText] = useState('');
+
+  return (
+    <>
+      <input value={text} onChange={e => setText(e.target.value)} />
+      <SlowList text={text} />
+    </>
+  );
+}
+```
+
+**해결:**
+
+```typescript
+function App() {
+  const [text, setText] = useState('');
+  const deferredText = useDeferredValue(text);
+
+  return (
+    <>
+      <input value={text} onChange={e => setText(e.target.value)} />
+      <SlowList text={deferredText} />
+    </>
+  );
+}
+
+const SlowList = memo(function SlowList({ text }) {
+  //...
+});
+```
+
+**동작:**
+
+1. 사용자 타이핑 → `text` 즉시 업데이트 (input 부드러움)
+2. `deferredText`는 이전 값 유지 → `SlowList` 재렌더링 스킵 (memo 덕분)
+3. 백그라운드에서 `SlowList` 재렌더링 (타이핑 방해 안 함)
+
+**주의:** `memo` 없이는 효과 없음. 부모가 재렌더링될 때 `SlowList`도 무조건 재렌더링되기 때문.
+
+**debounce/throttle과의 차이:**
+
+- debounce/throttle: 시간 기반 지연
+- useDeferredValue: React가 자동으로 우선순위 조정 (더 똑똑함)

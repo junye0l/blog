@@ -1,5 +1,7 @@
 {
-  "react": 20,
+  "react": 21,
+  "usedebugvalue": 1,
+  "usedeferredvalue": 1,
   "usestate": 1,
   "usecontext": 1,
   "usecallback": 1,
